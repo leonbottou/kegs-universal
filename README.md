@@ -166,7 +166,7 @@ The behavior of KEGS with an Apple 2gs ROM is
 mostly unchanged with the following three exceptions:
   * The memory protection features of the banked language card memory
     is now implemented.
-  * The slot 7 smartport hard disk emulation is now implemented and
+  * The slot 7 smartport hard disk emulation is now 
     switched like the ROM of a virtual card inserted in slot 7.
   * If the slot 7 code fails to find a bootable disk, the search
     for a bootable disk continues with slots 6 and 5.

@@ -764,7 +764,13 @@ do_c700(word32 ret)
 
 	if(ret != 0) {
 		printf("Failure reading boot disk in s7d1!\n");
-		engine.kpc = 0xff59;	/* Jump to monitor, fix $36-$39 */
+                if (get_memory16_c(0x00,0) == 0xc700) {
+			/* Try next slot if we're processing a cold reset */
+			set_memory16_c(0x00,0xc600,0);
+			engine.kpc = 0xc600;
+		} else {
+			engine.kpc = 0xff59;	/* Jump to monitor, fix $36-$39 */
+		}
 	}
 }
 

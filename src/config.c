@@ -29,6 +29,7 @@ extern byte *g_rom_fc_ff_ptr;
 extern byte *g_rom_cards_ptr;
 extern double g_cur_dcycs;
 extern int g_rom_version;
+extern int g_a2rom_version;
 extern int g_fatal_log;
 
 extern word32 g_adb_repeat_vbl;
@@ -95,9 +96,10 @@ char g_cfg_opts_strs[CFG_MAX_OPTS][CFG_OPT_MAXSTR];
 char g_cfg_opt_buf[CFG_OPT_MAXSTR];
 
 char *g_cfg_rom_path = "ROM";
+char *g_cfg_c6rom_path = "";
 char *g_cfg_file_def_name = "Undefined";
 char **g_cfg_file_strptr = 0;
-int g_cfg_file_min_size = 1024;
+int g_cfg_file_min_size = 256;
 int g_cfg_file_max_size = 2047*1024*1024;
 
 #define MAX_PARTITION_BLK_SIZE		65536
@@ -154,6 +156,7 @@ Cfg_menu g_cfg_joystick_menu[] = {
 Cfg_menu g_cfg_rom_menu[] = {
 { "ROM File Selection", g_cfg_rom_menu, 0, 0, CFGTYPE_MENU },
 { "ROM File", KNMP(g_cfg_rom_path), CFGTYPE_FILE },
+{ "C600 ROM File", KNMP(g_cfg_c6rom_path), CFGTYPE_FILE },
 { "", 0, 0, 0, 0 },
 { "Back to Main Config", g_cfg_main_menu, 0, 0, CFGTYPE_MENU },
 { 0, 0, 0, 0, 0 },
@@ -237,8 +240,7 @@ const char *g_kegs_c2rom_names[] = { 0 };
 const char *g_kegs_c3rom_names[] = { 0 };
 const char *g_kegs_c4rom_names[] = { 0 };
 const char *g_kegs_c5rom_names[] = { 0 };
-const char *g_kegs_c6rom_names[] = { "c600.rom", "controller.rom", "disk.rom",
-				"DISK.ROM", "diskII.prom", 0 };
+const char *g_kegs_c6rom_names[] = { 0, 0 }; /* First entry will be overwritten by g_cfg_c6rom_path */
 const char *g_kegs_c7rom_names[] = { 0 };
 
 const char **g_kegs_rom_card_list[8] = {
@@ -580,6 +582,8 @@ config_load_roms()
 	/* set first entry of g_kegs_rom_names[] to g_cfg_rom_path so that */
 	/*  it becomes the first place searched. */
 	g_kegs_rom_names[0] = g_cfg_rom_path;
+	g_kegs_rom_card_list[6][0] = g_cfg_c6rom_path;
+
 	setup_kegs_file(&g_cfg_tmp_path[0], CFG_PATH_MAX, -1, 0,
 							&g_kegs_rom_names[0]);
 
@@ -607,17 +611,40 @@ config_load_roms()
 	len = stat_buf.st_size;
 	if(len == 128*1024) {
 		g_rom_version = 1;
+		g_a2rom_version = 'g';
 		g_mem_size_base = 256*1024;
 		memset(&g_rom_fc_ff_ptr[0], 0, 2*65536);
 				/* Clear banks fc and fd to 0 */
 		ret = read(fd, &g_rom_fc_ff_ptr[2*65536], len);
 	} else if(len == 256*1024) {
 		g_rom_version = 3;
+		g_a2rom_version = 'g';
 		g_mem_size_base = 1024*1024;
 		ret = read(fd, &g_rom_fc_ff_ptr[0], len);
+	} else if(len == 12*1024) { /* ][ and II+ */
+		g_rom_version = 3;
+		g_a2rom_version = '2';
+		g_mem_size_base = 256*1024;
+		memset(&g_rom_fc_ff_ptr[0], 0, 0x3d000);
+		ret = read(fd, &g_rom_fc_ff_ptr[0x3d000], len);
+	} else if(len == 16*1024) { /* IIe IIc  */
+		g_rom_version = 3;
+		g_a2rom_version = '2';
+		g_mem_size_base = 256*1024;
+		memset(&g_rom_fc_ff_ptr[0], 0, 0x3c000);
+		ret = read(fd, &g_rom_fc_ff_ptr[0x3c000], len);
+	} else if(len == 32*1024) { /* IIe IIc IIc+ */
+		int r1, r2;
+		g_rom_version = 3;
+		g_a2rom_version = '2';
+		g_mem_size_base = 256*1024;
+		memset(&g_rom_fc_ff_ptr[0], 0, 0x3c000);
+		r1 = read(fd, &g_rom_fc_ff_ptr[0x3c000], 0x4000);
+		r2 = read(fd, &g_rom_fc_ff_ptr[0x2c000], 0x4000);
+		ret = (r2 < 0) ? r1 : r1+r2;
 	} else {
-		fatal_printf("The ROM size should be 128K or 256K, this file "
-						"is %d bytes\n", len);
+		fatal_printf("Supported  ROM sizes are 256K, 128K (GS) 32K, 16K, 12K (A2)\n"
+			     "This file is %d bytes long\n", len);
 		g_config_control_panel = 1;
 		return;
 	}
@@ -634,24 +661,53 @@ config_load_roms()
 
 	/* initialize c600 rom to be diffs from the real ROM, to build-in */
 	/*  Apple II compatibility without distributing ROMs */
-	for(i = 0; i < 256; i++) {
-		g_rom_cards_ptr[0x600 + i] = g_rom_fc_ff_ptr[0x3c600 + i] ^
+	if(g_a2rom_version == 'g') {
+		for(i = 0; i < 256; i++) {
+			g_rom_cards_ptr[0x600 + i] = g_rom_fc_ff_ptr[0x3c600 + i] ^
 				g_rom_c600_rom01_diffs[i];
+		}
 	}
-	if(g_rom_version >= 3) {
+	if(g_a2rom_version == 'g' && g_rom_version == 3) {
 		/* some patches */
 		g_rom_cards_ptr[0x61b] ^= 0x40;
 		g_rom_cards_ptr[0x61c] ^= 0x33;
 		g_rom_cards_ptr[0x632] ^= 0xc0;
 		g_rom_cards_ptr[0x633] ^= 0x33;
 	}
-
+	/* initialize c700 rom for smartport */
+	if(g_a2rom_version == 'g') {
+		for(i = 0; i < 256; i++) 
+			g_rom_cards_ptr[0x700 + i] = g_rom_fc_ff_ptr[0x3c500 + i];
+		g_rom_cards_ptr[0x7fb] &= 0xbf;
+		g_rom_cards_ptr[0x7ff] = 0x0a;
+	}
+	/* Detect A2 roms */
+	if(g_a2rom_version == '2') {
+		const char *type = "][";
+		byte fbb3 = g_rom_fc_ff_ptr[0x3fbb3];
+		if(fbb3 == 0x06 && !g_rom_fc_ff_ptr[0x3fbc0]) {
+			if(g_rom_fc_ff_ptr[0x3fbbf] == 0x05) {
+				type = "IIc+"; g_a2rom_version = 'C';
+			} else {
+				type = "IIc"; g_a2rom_version = 'c';
+			}
+		} else if(fbb3 == 0x06) {
+			type = "IIe"; g_a2rom_version = 'e';
+		} else if(fbb3 == 0xea) {
+			type = "II+";
+		}
+		printf("This is an Apple %s rom\n",type);
+	}
+        /* load slot roms */
 	for(i = 1; i < 8; i++) {
 		names_ptr = g_kegs_rom_card_list[i];
 		if(names_ptr == 0) {
 			continue;
 		}
 		if(*names_ptr == 0) {
+			continue;
+		}
+		if(**names_ptr == 0) {
 			continue;
 		}
 
@@ -669,6 +725,7 @@ config_load_roms()
 
 			len = 256;
 			ret = read(fd, &g_rom_cards_ptr[i*0x100], len);
+			printf("Read: %d bytes of ROM for slot C%d\n", ret, i);
 
 			if(ret != len) {
 				fatal_printf("While reading card ROM %s, file "
@@ -684,7 +741,7 @@ config_load_roms()
 	/* Only do the patch if users wants more than 8MB of expansion mem */
 
 	changed_rom = 0;
-	if(g_rom_version == 1) {
+	if(g_a2rom_version == 'g' && g_rom_version == 1) {
 		/* make some patches to ROM 01 */
 #if 0
 		/* 1: Patch ROM selftest to not do speed test */
@@ -714,7 +771,7 @@ config_load_roms()
 			g_rom_fc_ff_ptr[0x37a06] = 0x18;
 			g_rom_fc_ff_ptr[0x37a07] = 0x18;
 		}
-	} else if(g_rom_version == 3) {
+	} else if(g_a2rom_version == 'g' && g_rom_version == 3) {
 		/* patch ROM 03 */
 		printf("Patching ROM 03 smartport bug\n");
 		/* 1: Patch Smartport code to fix a stupid bug */
@@ -2685,7 +2742,8 @@ cfg_file_update_ptr(char *str)
 		}
 	}
 	*g_cfg_file_strptr = newstr;
-	if(g_cfg_file_strptr == &(g_cfg_rom_path)) {
+	if(g_cfg_file_strptr == &(g_cfg_rom_path) ||
+	   g_cfg_file_strptr == &(g_cfg_c6rom_path) ) {
 		printf("Updated ROM file\n");
 		load_roms_init_memory();
 	}

@@ -445,7 +445,7 @@ iwm_touch_switches(int loc, double dcycs)
 			break;
 		case 0xa:
 		case 0xb:
-			iwm.drive_select = on;
+			iwm.drive_select = mig_changedrive(on);
 			break;
 		case 0xc:
 		case 0xd:

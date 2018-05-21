@@ -87,6 +87,7 @@ double	g_fcycles_stop = 0.0;
 int	halt_sim = 0;
 int	enter_debug = 0;
 int	g_rom_version = -1;
+int	g_a2rom_version = 0;
 int	g_user_halt_bad = 0;
 int	g_halt_on_bad_read = 0;
 int	g_ignore_bad_acc = 1;
@@ -606,12 +607,26 @@ my_exit(int ret)
 void
 do_reset()
 {
+	switch (g_a2rom_version) {
+	case '2': /* apple II,II+ */
+	case 'e': /* apple IIe */
+		g_c02d_int_crom = 0xfe;
+		g_c068_statereg &= 0xc;
+		break;
+        case 'c': /* apple IIc */
+        case 'C': /* apple IIc+ */	  
+		g_c02d_int_crom = 0;
+		g_c068_statereg &= 0xc;
+		g_c068_statereg |= 0x1;
+		break;
+        default:
+		g_c02d_int_crom = 0;
+		g_c068_statereg = 0x0d;
+		g_c08x_wrdefram = 1;
+		break;
+        }
 
-	g_c068_statereg = 0x08 + 0x04 + 0x01; /* rdrom, lcbank2, intcx */
 	g_c035_shadow_reg = 0;
-
-	g_c08x_wrdefram = 1;
-	g_c02d_int_crom = 0;
 	g_c023_val = 0;
 	g_c041_val = 0;
 
@@ -1647,11 +1662,7 @@ take_irq(int is_it_brk)
 			/* Clear B bit in psr on stack */
 		engine.stack = ((engine.stack -1) & 0xff) + 0x100;
 
-		va = 0xfffffe;
-		if(g_c035_shadow_reg & 0x40) {
-			/* I/O shadowing off...use ram locs */
-			va = 0x00fffe;
-		}
+		va = 0xfffe;
 
 	} else {
 		/* native */
@@ -1669,20 +1680,19 @@ take_irq(int is_it_brk)
 
 		if(is_it_brk) {
 			/* break */
-			va = 0xffffe6;
-			if(g_c035_shadow_reg & 0x40) {
-				va = 0xffe6;
-			}
+			va = 0xffe6;
 		} else {
 			/* irq */
-			va = 0xffffee;
-			if(g_c035_shadow_reg & 0x40) {
-				va = 0xffee;
-			}
+			va = 0xffee;
 		}
-
 	}
-
+	
+	if(g_a2rom_version == 'g' && !(g_c035_shadow_reg & 0x40)) {
+		/* GS has circuitry that causes the 65816 to
+		   read irq vectors from the rom when I/O shadowing is on. */
+		va |= 0xff0000;
+	}
+	
 	new_kpc = get_memory_c(va, 0);
 	new_kpc = new_kpc + (get_memory_c(va+1, 0) << 8);
 

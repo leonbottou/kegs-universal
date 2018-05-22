@@ -657,30 +657,6 @@ config_load_roms()
 	}
 	close(fd);
 
-	memset(&g_rom_cards_ptr[0], 0, 256*16);
-
-	/* initialize c600 rom to be diffs from the real ROM, to build-in */
-	/*  Apple II compatibility without distributing ROMs */
-	if(g_a2rom_version == 'g') {
-		for(i = 0; i < 256; i++) {
-			g_rom_cards_ptr[0x600 + i] = g_rom_fc_ff_ptr[0x3c600 + i] ^
-				g_rom_c600_rom01_diffs[i];
-		}
-	}
-	if(g_a2rom_version == 'g' && g_rom_version == 3) {
-		/* some patches */
-		g_rom_cards_ptr[0x61b] ^= 0x40;
-		g_rom_cards_ptr[0x61c] ^= 0x33;
-		g_rom_cards_ptr[0x632] ^= 0xc0;
-		g_rom_cards_ptr[0x633] ^= 0x33;
-	}
-	/* initialize c700 rom for smartport */
-	if(g_a2rom_version == 'g') {
-		for(i = 0; i < 256; i++) 
-			g_rom_cards_ptr[0x700 + i] = g_rom_fc_ff_ptr[0x3c500 + i];
-		g_rom_cards_ptr[0x7fb] &= 0xbf;
-		g_rom_cards_ptr[0x7ff] = 0x0a;
-	}
 	/* Detect A2 roms */
 	if(g_a2rom_version == '2') {
 		const char *type = "][";
@@ -698,7 +674,38 @@ config_load_roms()
 		}
 		printf("This is an Apple %s rom\n",type);
 	}
-        /* load slot roms */
+
+        /* Slot roms */
+	memset(&g_rom_cards_ptr[0], 0, 256*16);
+	/* Initialize c600 rom to be diffs from the real ROM, to build-in */
+	/* Apple II compatibility without distributing ROMs */
+	if(g_a2rom_version == 'g') {
+		for(i = 0; i < 256; i++) {
+			g_rom_cards_ptr[0x600 + i] = g_rom_fc_ff_ptr[0x3c600 + i] ^
+				g_rom_c600_rom01_diffs[i];
+		}
+	}
+	if(g_a2rom_version == 'g' && g_rom_version == 3) {
+		/* some patches */
+		g_rom_cards_ptr[0x61b] ^= 0x40;
+		g_rom_cards_ptr[0x61c] ^= 0x33;
+		g_rom_cards_ptr[0x632] ^= 0xc0;
+		g_rom_cards_ptr[0x633] ^= 0x33;
+	}
+	/* Initialize c700 rom for smartport */
+        switch(g_a2rom_version) {
+        case 'g': case '2': case 'e':
+		memset(&g_rom_cards_ptr[0x700],0,256);
+		g_rom_cards_ptr[0x701] = 0x20;
+		g_rom_cards_ptr[0x705] = 0x03;
+		g_rom_cards_ptr[0x7fb] = 0x80;
+		g_rom_cards_ptr[0x7fe] = 0xbf;                
+		g_rom_cards_ptr[0x7ff] = 0x0a;
+		break;
+        default:
+                break;
+        }
+        /* Load slot rom files */
 	for(i = 1; i < 8; i++) {
 		names_ptr = g_kegs_rom_card_list[i];
 		if(names_ptr == 0) {

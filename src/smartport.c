@@ -450,6 +450,7 @@ void
 do_c70a(word32 arg0)
 {
 	int	cmd, unit;
+	int     rts_lo, rts_hi;
 	int	buf_lo, buf_hi;
 	int	blk_lo, blk_hi;
 	int	blk, buf;
@@ -483,11 +484,11 @@ do_c70a(word32 arg0)
 	smartport_log(0xc70a, cmd, blk, buf);
 
 	engine.psr &= ~1;	/* clear carry */
-	if(g_rom_version >= 3) {
-		engine.kpc = 0xc764;
-	} else {
-		engine.kpc = 0xc765;
-	}
+	engine.stack = ((engine.stack + 1) & 0xff) + 0x100;
+	rts_lo = get_memory_c(engine.stack, 0);
+	engine.stack = ((engine.stack + 1) & 0xff) + 0x100;
+	rts_hi = get_memory_c(engine.stack, 0);
+	engine.kpc = ((rts_hi << 8) + rts_lo + 1) & 0xffff;
 
 	ret = 0x27;	/* I/O error */
 	if(cmd == 0x00) {

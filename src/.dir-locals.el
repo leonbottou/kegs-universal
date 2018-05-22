@@ -3,7 +3,7 @@
 
 ((c-mode
   (c-basic-offset . 8))
- (fundamental-mode
+ (nil
   (indent-tabs-mode . t)))
 
 

@@ -136,9 +136,9 @@ keep up with the 3.5" drive data transfer rate. The rumor
 says that the Apple engineers only kept the MIG on the 2c+ board
 because the 4MHz built-in cpu accelerator was a late addition
 to the project. The only programming information I found
-on the MIG was some reverse engineering by "M.G."
+on the MIG was some [reverse engineering by "M.G."]
 (http://apple2.guidero.us/doku.php?id=mg_notes:apple_iic:mig_chip)
-and the discussion following a bug report for the MAME emulator
+and the discussion following a [bug report for the MAME emulator]
 (https://github.com/mamedev/mame/issues/2775.)
 
 Two realization helped me figure out the rest. First, in the available

@@ -139,7 +139,7 @@ to the project. The only programming information I found
 on the MIG was some 
 [reverse engineering by "M.G."](http://apple2.guidero.us/doku.php?id=mg_notes:apple_iic:mig_chip)
 and the discussion following a 
-[bug report for the MAME emulator](https://github.com/mamedev/mame/issues/2775.)
+[bug report for the MAME emulator.](https://github.com/mamedev/mame/issues/2775)
 
 Two realization helped me figure out the rest. First, in the available
 2c schematics, the MIG RESET line is tied to both the /IOSEL line 

@@ -39,7 +39,7 @@ important differences over time:
   * The 2gs contains a special circuit that causes the processor to
     always fetch interruption vectors in the rom located in page `ff` 
     instead of page `00`. The corresponding code, located in `sim65816.c`,
-    now runs only when `g_a2rom_version == 'g'`.
+    now only does this if `g_a2rom_version=='g'`.
   * The KEGS emulator did not implement the language card memory protection
     and the double reading of the `c08x`. This was fixed in `moremem.c`
     for all architectures.

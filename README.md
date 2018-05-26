@@ -7,7 +7,7 @@ I was curious to see how difficult it would be to boot the KEGS Apple 2gs emulat
 using the ROMs of older Apple 2 models. Since the 2gs hardware was designed to be
 as compatible as possible with the earlier models, it likely supports what the 
 older ROMs need. This reasoning worked quite well for the Apple 2, 2+, 
-and 2e ROMS. The changes needed to support the Apple 2c and 2c+ ROMS were 
+and 2e ROMs. The changes needed to support the Apple 2c and 2c+ ROMs were 
 much more interesting. This is described below.
 
 ## Supported ROMs
@@ -88,8 +88,7 @@ in pages `02` to `12` to implement the memory extension.
 
 ### The Apple 2c mouse
 
-Rather than emulating the ACIA chips (which is boring), 
-I decided to resolve the dramatically different ways 
+Then I decided to resolve the dramatically different ways 
 in which the 2c and the 2gs handle the mouse. Whereas the 2gs 
 uses the rather intelligent adb controller to buffer the mouse 
 moves and report x or y deltas in range 0..64, the 2c interrupts 
@@ -116,7 +115,8 @@ twice faster than the 2c 65C02 cpu.  The proper way
 to implement this would be to have the emulator
 intercept firmware calls on slot 5. This technique
 is already used by Kegs to simulate a hard disk
-on slot 7. 
+on slot 7. On the other hand, the 2c+ uses the
+same drives as the 2gs...
 
 ## Apple 2c+
 

@@ -614,14 +614,9 @@ do_reset()
 		g_c02d_int_crom = 0xfe;
 		g_c068_statereg &= 0xc;
 		break;
-        case 'c': /* apple IIc */
-        case 'C': /* apple IIc+ */	  
-		g_c02d_int_crom = 0;
-		g_c068_statereg &= 0xc;
-		break;
         default:
 		g_c02d_int_crom = 0;
-		g_c068_statereg = 0x0d;
+		g_c068_statereg = 0xd;
 		break;
         }
 

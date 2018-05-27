@@ -610,9 +610,12 @@ do_reset()
 {
 	switch (g_a2rom_version) {
 	case '2': /* apple II,II+ */
-	case 'e': /* apple IIe */
 		g_c02d_int_crom = 0xfe;
 		g_c068_statereg &= 0xc;
+		break;
+	case 'e': /* apple IIe */
+		g_c02d_int_crom = 0xf6;
+		g_c068_statereg = 0xc;
 		break;
         default:
 		g_c02d_int_crom = 0;

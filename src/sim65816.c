@@ -45,6 +45,7 @@ extern int g_c068_statereg;
 extern int g_cur_a2_stat;
 
 extern int g_c08x_wrdefram;
+extern int g_c08x_q3defram;
 extern int g_c02d_int_crom;
 
 extern int g_c035_shadow_reg;
@@ -617,15 +618,15 @@ do_reset()
         case 'C': /* apple IIc+ */	  
 		g_c02d_int_crom = 0;
 		g_c068_statereg &= 0xc;
-		g_c068_statereg |= 0x1;
 		break;
         default:
 		g_c02d_int_crom = 0;
 		g_c068_statereg = 0x0d;
-		g_c08x_wrdefram = 1;
 		break;
         }
 
+	g_c08x_wrdefram = 1;
+	g_c08x_q3defram = 0;	
 	g_c035_shadow_reg = 0;
 	g_c023_val = 0;
 	g_c041_val = 0;

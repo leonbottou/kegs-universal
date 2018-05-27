@@ -59,7 +59,7 @@ int	g_c046_val = 0;
 int	g_c05x_annuncs = 0;
 int	g_c068_statereg = 0x0c;
 int	g_c08x_wrdefram = 0;
-int	g_c08x_wrdefram_once = 0;
+int	g_c08x_q3defram = 0;
 int	g_zipgs_unlock = 0;
 int	g_zipgs_reg_c059 = 0x5f;
 	// 7=LC cache dis, 6==5ms paddle del en, 5==5ms ext del en,
@@ -1736,24 +1736,20 @@ io_read(word32 loc, double *cyc_ptr)
 		case 0x88: case 0x89: case 0x8a: case 0x8b:
 		case 0x8c: case 0x8d: case 0x8e: case 0x8f:
 			new_lcbank2 = ((loc & 0x8) >> 1) ^ 0x4;
-			new_wrdefram = (loc & 1);
-			if(new_wrdefram != g_c08x_wrdefram) {
-				if (g_c08x_wrdefram_once || ! new_wrdefram) 
-					fixup_wrdefram(new_wrdefram);
-			}
-			g_c08x_wrdefram_once = new_wrdefram;
+			new_wrdefram = (loc & 1) && (g_c08x_q3defram || g_c08x_wrdefram);
+			g_c08x_q3defram = (loc & 1);
+			if(new_wrdefram != g_c08x_wrdefram)
+				fixup_wrdefram(new_wrdefram);
 			switch(loc & 0x3) {
 			case 0x1: /* 0xc081 */
 			case 0x2: /* 0xc082 */
 				/* Read rom, set lcbank2 */
-				set_statereg(dcycs, (g_c068_statereg & ~(0x04))|
-					(new_lcbank2 | 0x08));
+				set_statereg(dcycs, (g_c068_statereg & ~(0x04))|(new_lcbank2|0x08));
 				break;
 			case 0x0: /* 0xc080 */
 			case 0x3: /* 0xc083 */
 				/* Read ram (clear RDROM), set lcbank2 */
-				set_statereg(dcycs, (g_c068_statereg & ~(0x0c))|
-					(new_lcbank2));
+				set_statereg(dcycs, (g_c068_statereg & ~(0x0c))|(new_lcbank2));
 				break;
 			}
 			return float_bus(dcycs);
@@ -2430,24 +2426,20 @@ io_write(word32 loc, int val, double *cyc_ptr)
 		case 0x88: case 0x89: case 0x8a: case 0x8b:
 		case 0x8c: case 0x8d: case 0x8e: case 0x8f:
 			new_lcbank2 = ((loc & 0x8) >> 1) ^ 0x4;
-			new_wrdefram = (loc & 1);
-			if(new_wrdefram != g_c08x_wrdefram) {
-				if (g_c08x_wrdefram_once || ! new_wrdefram) 
-					fixup_wrdefram(new_wrdefram);
-			}
-			g_c08x_wrdefram_once = new_wrdefram;
+			new_wrdefram = (loc & 1) && g_c08x_wrdefram;
+			g_c08x_q3defram = 0;
+			if(new_wrdefram != g_c08x_wrdefram)
+				fixup_wrdefram(new_wrdefram);
 			switch(loc & 0x3) {
 			case 0x1: /* 0xc081 */
 			case 0x2: /* 0xc082 */
 				/* Read rom, set lcbank2 */
-				set_statereg(dcycs, (g_c068_statereg & ~(0x04))|
-					(new_lcbank2 | 0x08));
+				set_statereg(dcycs, (g_c068_statereg & ~(0x04))|(new_lcbank2|0x08));
 				break;
 			case 0x0: /* 0xc080 */
 			case 0x3: /* 0xc083 */
 				/* Read ram (clear RDROM), set lcbank2 */
-				set_statereg(dcycs, (g_c068_statereg & ~(0x0c))|
-					(new_lcbank2));
+				set_statereg(dcycs, (g_c068_statereg & ~(0x0c))|(new_lcbank2));
 				break;
 			}
 			return;

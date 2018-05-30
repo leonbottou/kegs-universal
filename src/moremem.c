@@ -1724,10 +1724,16 @@ io_read(word32 loc, double *cyc_ptr)
 		case 0x74: case 0x75: case 0x76: case 0x77:
 		case 0x78: case 0x79: case 0x7a: case 0x7b:
 		case 0x7c: case 0x7d: 
-			return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
+			if (g_a2rom_version == 'g')
+				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
+			return 0;
 		case 0x7e:
+			if (g_a2rom_version == 'g')
+				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
 			return IOR(g_a2c_ioudis);
 		case 0x7f:
+			if (g_a2rom_version == 'g')
+				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
 			return IOR(g_cur_a2_stat & ALL_STAT_ANNUNC3);
 			
 		/* 0xc080 - 0xc08f */
@@ -1735,7 +1741,7 @@ io_read(word32 loc, double *cyc_ptr)
 		case 0x84: case 0x85: case 0x86: case 0x87:
 		case 0x88: case 0x89: case 0x8a: case 0x8b:
 		case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-			/* After checking the Language Card schematics */
+			/* After checkingthe Language Card schematics */
 			new_lcbank2 = ((loc & 0x8) >> 1) ^ 0x4;
 			new_wrdefram = (loc & 1) && (g_c08x_q3defram || g_c08x_wrdefram);
 			g_c08x_q3defram = (loc & 1);

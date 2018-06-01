@@ -612,10 +612,17 @@ do_reset()
 	case '2': /* apple II,II+ */
 		g_c02d_int_crom = 0xfe;
 		g_c068_statereg &= 0xc;
+		g_c036_val_speed = (g_c036_val_speed & 0x40) | 0x84;
 		break;
 	case 'e': /* apple IIe */
 		g_c02d_int_crom = 0xf6;
 		g_c068_statereg = 0xc;
+		g_c036_val_speed = (g_c036_val_speed & 0x40) | 0x84;
+		break;
+	case 'c': case 'C': /* apple IIc */
+		g_c036_val_speed = (g_c036_val_speed & 0x40) | 0x84;
+		g_c02d_int_crom = 0;
+		g_c068_statereg = 0xd;
 		break;
         default:
 		g_c02d_int_crom = 0;

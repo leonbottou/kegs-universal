@@ -272,6 +272,28 @@ mig_changedrive(int drive)
 }
 
 void
+mig_checkwhead(Disk *dsk, int newq7)
+{
+	/* The 2c+ floppy formatting code apparently switches the
+	   writing head without hitting iwm_read_status35(). Merely
+	   changing the HDSEL line seems enough. These 3.5 drives
+	   still have some secrets. This function is called from
+	   iwm_touch_switches() to patch the active head. under narrow
+	   conditions that are sufficient for the formatting code. */
+	extern Iwm iwm;
+	extern int g_iwm_motor_on;
+	if (g_a2rom_version == 'C' && g_iwm_motor_on) {
+		int head35 = (g_c031_disk35 & 0x80) ? 1 : 0;
+		if (iwm.q6 && !iwm.q7 && newq7	/* 10>11 q6q7 transition */
+		    && dsk->disk_525 == 0	/* 3.5 drive */
+		    && head35 != iwm.head35 ) {	/* head changed */
+			iwm.head35 = head35;
+			iwm_move_to_track(dsk, ((dsk->cur_qtr_track&~1)|head35));
+		}
+	}
+}
+
+void
 fixup_mig(void)
 {
 	/* This is called when rombank changes.

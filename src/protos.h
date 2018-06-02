@@ -326,6 +326,7 @@ void iwm_show_a_track(Trk *trk);
 
 /* moremem.c */
 int mig_changedrive(int);
+void mig_checkwhead(Disk*,int);
 void fixup_mig(void);
 void fixup_brks(void);
 void fixup_hires_on(void);

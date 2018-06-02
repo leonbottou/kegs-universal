@@ -453,6 +453,7 @@ iwm_touch_switches(int loc, double dcycs)
 			break;
 		case 0xe:
 		case 0xf:
+			mig_checkwhead(dsk, on); 
 			iwm.q7 = on;
 			break;
 		default:

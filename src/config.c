@@ -697,8 +697,10 @@ config_load_roms()
         case 'g': case '2': case 'e':
 		memset(&g_rom_cards_ptr[0x700],0,256);
 		g_rom_cards_ptr[0x701] = 0x20;
+		g_rom_cards_ptr[0x703] = 0x00;
 		g_rom_cards_ptr[0x705] = 0x03;
-		g_rom_cards_ptr[0x7fb] = 0x80;
+		g_rom_cards_ptr[0x707] = 0x00; // 3c=prodos, 00=smartport
+		g_rom_cards_ptr[0x7fb] = 0x80; // supports extended calls
 		g_rom_cards_ptr[0x7fe] = 0xbf;                
 		g_rom_cards_ptr[0x7ff] = 0x0a;
 		break;

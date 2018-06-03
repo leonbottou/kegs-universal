@@ -14,8 +14,9 @@ much more interesting. This is described below.
 
 The KEGS configuration code (`config.c`) was minimally changed to accept ROM
 files of 12KB (for the Apple 2 and 2+), 16KB (for the Apple 2e and some 2c),
-32KB (for the Apple 2c and 2c+). It also uses the standard location to
-set varianle `g_a2rom_version` with the following values:
+32KB (for the Apple 2c and 2c+). It also uses the standard tests to
+determine the type of the machine associated with the ROM and
+set the variable `g_a2rom_version` with the following values:
   * `'2'` for an Apple 2 or Apple 2+ ROM (both 12KB roms,)
   * `'e'` for an Apple 2e (both the 16KB original and enhanced roms,)
   * `'c'` for an Apple 2c  (tested the 16KB rom0 and the 32KB rom4,)

@@ -633,7 +633,8 @@ defs_instr_start_16	.word	0
 	INC_KPC_3;						\
 	CYCLES_PLUS_2;						\
 	arg = (dbank << 16) + ((arg + xreg) & 0xffff);		\
-	GET_MEMORY8(arg, arg);
+	GET_MEMORY8(arg, tmp1);	/* popular double read */	\
+	GET_MEMORY8(arg, arg);		 
 # else
 #  define GET_ABS_X_RD()					\
 	GET_ABS_INDEX_ADDR_FOR_RD(xreg);			\

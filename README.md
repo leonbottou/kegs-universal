@@ -43,7 +43,10 @@ important differences over time:
     now only does this if `g_a2rom_version=='g'`.
   * The KEGS emulator did not implement the language card memory protection
     and the double reading of the `c08x`. This was fixed in `moremem.c`
-    for all architectures.
+    for all architectures. A couple weeks later I also had to modify the
+    cpu simulation code for INC abs,X because several pieces of code depend
+    on the 6502/65C02/65816 reading the memory location twice to write-enable
+    the language card ram.
     
 Note that the character generator ROM still shows characters `e0..ff`
 as lowercase character. On the real Apple 2 or 2+, these are uppercase

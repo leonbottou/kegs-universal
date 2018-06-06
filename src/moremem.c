@@ -1458,14 +1458,10 @@ io_read(word32 loc, double *cyc_ptr)
 		case 0x29: /* 0xc029 */
 			return((g_cur_a2_stat & 0xa0) | g_c029_val_some);
 		case 0x2a: /* 0xc02a */
-#if 0
-			printf("Reading c02a...returning 0\n");
-#endif
 			return 0;
 		case 0x2b: /* 0xc02b */
 			return g_c02b_val;
 		case 0x2c: /* 0xc02c */
-			/* printf("reading c02c, returning 0\n"); */
 			return 0;
 		case 0x2d: /* 0xc02d */
 			tmp = g_c02d_int_crom;
@@ -1525,6 +1521,8 @@ io_read(word32 loc, double *cyc_ptr)
 			return IOR(g_a2c_mouse & 0x2);
 		case 0x43: /* 0xc043 */
 			return IOR(g_a2c_mouse & 0x1);
+		case 0x44: /* 0xc044 */
+			UNIMPL_READ;
 		case 0x45: /* 0xc045 */
 			halt_printf("Mega II mouse read: c045\n");
 			return 0;
@@ -1538,6 +1536,12 @@ io_read(word32 loc, double *cyc_ptr)
 			g_c046_val &= 0xe7;	/* clear vbl_int, 1/4sec int*/
 			return 0;
 		case 0x48: /* 0xc048 */
+		case 0x49: /* 0xc049 */
+		case 0x4a: /* 0xc04a */
+		case 0x4b: /* 0xc04b */
+		case 0x4c: /* 0xc04c */
+		case 0x4d: /* 0xc04d */
+		case 0x4e: /* 0xc04e */
 			g_a2c_mouse &= 0xf3;
 			return 0;
 		case 0x4f: /* 0xc04f */
@@ -1559,13 +1563,6 @@ io_read(word32 loc, double *cyc_ptr)
 				g_em_emubyte_cnt = 0;
 				return 0;
 			}
-		case 0x44: /* 0xc044 */
-		case 0x49: /* 0xc049 */
-		case 0x4a: /* 0xc04a */
-		case 0x4b: /* 0xc04b */
-		case 0x4c: /* 0xc04c */
-		case 0x4d: /* 0xc04d */
-		case 0x4e: /* 0xc04e */
 			UNIMPL_READ;
 
 		/* 0xc050 - 0xc05f */
@@ -1698,6 +1695,8 @@ io_read(word32 loc, double *cyc_ptr)
 
 		/* 0xc060 - 0xc06f */
 		case 0x60: /* 0xc060 */
+			if (A2CROM)
+				return 0; /* 80/40 cols button */
 			return IOR(g_paddle_buttons & 8);
 		case 0x61: /* 0xc061 */
 			if (A2CROM && (emulate_a2c_mouse(dcycs) & 0x80))
@@ -1753,14 +1752,20 @@ io_read(word32 loc, double *cyc_ptr)
 		case 0x7c: case 0x7d: 
 			if (g_a2rom_version == 'g')
 				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
+			else if (g_a2rom_version != 'c')
+				paddle_trigger(dcycs);
 			return 0;
 		case 0x7e:
 			if (g_a2rom_version == 'g')
 				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
+			else if (g_a2rom_version != 'c')
+				paddle_trigger(dcycs);
 			return IOR(g_a2c_ioudis);
 		case 0x7f:
 			if (g_a2rom_version == 'g')
 				return g_rom_fc_ff_ptr[3*65536 + 0xc000 + (loc & 0xff)];
+			else if (g_a2rom_version != 'c')
+				paddle_trigger(dcycs);
 			return IOR(g_cur_a2_stat & ALL_STAT_ANNUNC3);
 			
 		/* 0xc080 - 0xc08f */
@@ -2203,6 +2208,8 @@ io_write(word32 loc, int val, double *cyc_ptr)
 			return;
 
 		/* 0xc040 - 0xc04f */
+		case 0x40: /* c040 */
+			return;
 		case 0x41: /* c041 */
 			g_c041_val = val & 0x1f;
 			if((val & 0xe7) != 0) {
@@ -2217,8 +2224,11 @@ io_write(word32 loc, int val, double *cyc_ptr)
 				remove_irq(IRQ_PENDING_C046_25SEC);
 			}
 			return;
+		case 0x42: /* c042 */
+		case 0x43: /* c043 */
+		case 0x44: /* c044 */
+		case 0x45: /* c045 */
 		case 0x46: /* c046 */
-			/* ignore writes to c046 */
 			return;
 		case 0x47: /* c047 */
 			remove_irq(IRQ_PENDING_C046_VBL |
@@ -2226,25 +2236,18 @@ io_write(word32 loc, int val, double *cyc_ptr)
 			g_c046_val &= 0xe7;	/* clear vblint, 1/4sec int*/
 			return;
 		case 0x48: /* c048 */
-			g_a2c_mouse &= 0xf3;
-			return;
-		case 0x42: /* c042 */
-		case 0x43: /* c043 */
-			return;
-		case 0x4f: /* c04f */
-			g_em_emubyte_cnt = 1;
-			return;
-		case 0x40: /* c040 */
-		case 0x44: /* c044 */
-		case 0x45: /* c045 */
 		case 0x49: /* c049 */
 		case 0x4a: /* c04a */
 		case 0x4b: /* c04b */
 		case 0x4c: /* c04c */
 		case 0x4d: /* c04d */
 		case 0x4e: /* c04e */
-			UNIMPL_WRITE;
-
+			g_a2c_mouse &= 0xf3;
+			return;
+		case 0x4f: /* c04f */
+			g_em_emubyte_cnt = 1;
+			return;
+			
 		/* 0xc050 - 0xc05f */
 		case 0x50: /* 0xc050 */
 			if(g_cur_a2_stat & ALL_STAT_TEXT) {
@@ -2422,11 +2425,9 @@ io_write(word32 loc, int val, double *cyc_ptr)
 				remove_irq(IRQ_PENDING_C046_VBL);
 			}				
 			return;
-		case 0x73: /* 0xc073 = multibank ram card bank addr? */
-			return;
 		case 0x71: /* 0xc071 = another multibank ram card enable? */
-			return;
-		case 0x72: /* 0xc072 */
+		case 0x72:
+		case 0x73: /* 0xc073 = multibank ram card bank addr? */
 		case 0x74: /* 0xc074 */
 		case 0x75: /* 0xc075 */
 		case 0x76: /* 0xc076 */
@@ -2435,14 +2436,21 @@ io_write(word32 loc, int val, double *cyc_ptr)
 		case 0x7b: /* 0xc07b */
 		case 0x7c: /* 0xc07c */
 		case 0x7d: /* 0xc07d */
-			UNIMPL_WRITE;
+			paddle_trigger(dcycs);
+			return;
 		case 0x78: /* 0xc078 */
 		case 0x7e: /* 0xc07e */
-			g_a2c_ioudis = 1;
+			if (A2CROM)
+				g_a2c_ioudis = 1;
+			else
+				paddle_trigger(dcycs);
 			return;
 		case 0x79: /* 0xc079 */
 		case 0x7f: /* 0xc07f */
-			g_a2c_ioudis = (A2CROM) ? 0 : 1;
+			if (A2CROM)
+				g_a2c_ioudis = 0;
+			else
+				paddle_trigger(dcycs);
 			return;
 		/* 0xc080 - 0xc08f */
 		case 0x80: case 0x81: case 0x82: case 0x83:

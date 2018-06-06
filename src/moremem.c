@@ -983,7 +983,12 @@ set_statereg(double dcycs, int val)
 	}
 
 	if(xor & 0x01) {
-		fixup_intcx();
+		if (A2CROM)
+			/* The Prodos relocation code clears this bit */
+			/* This is bad on a 2c because it has no slots, */
+			g_c068_statereg |= 0x1;
+		else
+			fixup_intcx();
 	}
 
 	if(xor) {

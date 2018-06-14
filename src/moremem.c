@@ -299,7 +299,7 @@ fixup_mig(void)
 	/* This is called when rombank changes.
 	   The mig RESET and IOSEL inputs are both tied to ROM's A14 line */
 	if (g_a2rom_version == 'C') 
-		if (g_c068_statereg & 0x02) { 
+		if (! (g_c068_statereg & 0x02)) { 
 			g_mig_bank = 0;        
 			mig_changestate(0);
 		}
@@ -337,6 +337,7 @@ mig_write(int loc, int val)
 	case 0xc40:             /* IWM reset (guess) */
 		if (g_c031_disk35 & 0x40)
 			set_halt(HALT_EVENT);
+		mig_changemotor(0);
 		iwm_reset();
 		break;;
 	case 0xc80:             /* IWM dr2 goes to internal disk */

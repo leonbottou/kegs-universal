@@ -1454,7 +1454,8 @@ run_prog()
 			setup_zip_speeds();
 		}
 
-		iwm_1 = motor_on && !apple35_sel &&
+		iwm_1 = motor_on &&
+				(g_a2rom_version != 'g' || !apple35_sel) &&
 				(g_c036_val_speed & 0x4) &&
 				(g_slow_525_emul_wr || !g_fast_disk_emul);
 		iwm_25 = (motor_on && apple35_sel) && !g_fast_disk_emul;

@@ -21,6 +21,9 @@ const char rcsid_iwm_h[] = "@(#)$KmKId: iwm.h,v 1.14 2004-10-20 17:29:38-04 kent
 #define DSK_TYPE_PRODOS		0
 #define DSK_TYPE_DOS33		1
 #define DSK_TYPE_NIB		2
+#define DSK_TYPE_35_4    	4   /* 3.5 disk with 1:4 interleave */
+
+
 
 typedef struct _Disk Disk;
 

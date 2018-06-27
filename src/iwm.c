@@ -1946,7 +1946,7 @@ iwm_nibblize_track_35(Disk *dsk, Trk *trk, byte *track_buf, int qtr_track)
 	}
 
 	phys_sec = 0;
-	interleave = 2;
+	interleave = (dsk->image_type == DSK_TYPE_35_4) ? 4 : 2;
 	for(log_sec = 0; log_sec < num_sectors; log_sec++) {
 		while(phys_to_log_sec[phys_sec] >= 0) {
 			phys_sec++;

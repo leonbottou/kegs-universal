@@ -1394,7 +1394,12 @@ insert_disk(int slot, int drive, const char *name, int ejected, int force_size,
 			}
 		}
 	}
-
+	if (! dsk->smartport && ! dsk->disk_525) {
+		if (name_len >= 5 &&
+		    ! strcasecmp(dsk->name_ptr+name_len-4, ".po4"))
+			dsk->image_type = DSK_TYPE_35_4;
+	}
+	
 	dsk->disk_dirty = 0;
 	dsk->nib_pos = 0;
 	dsk->trks = 0;
